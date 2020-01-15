@@ -77,7 +77,7 @@ class FrontEnd(object):
             # handling user events
             for event in pygame.event.get():
 
-                # sending velocities to Tello (update evemt) (every 50 ms)
+                # sending velocities to Tello (update event) (every 50 ms)
                 if event.type == pygame.USEREVENT + 1:
                     self.update()
 
