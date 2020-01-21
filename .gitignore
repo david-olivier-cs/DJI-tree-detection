@@ -1,7 +1,11 @@
 # ignoring other folders
 DJITelloPy/
-Docs/
 env/
+Data/
+labelImg/
+
+# ignore log files
+*.log
 
 # ignoring vs code files
 .vscode/

@@ -1,0 +1,8 @@
+Image data set
+- [x] Make a predefined classes file
+- [x] Install and test labelImg
+- [] Implement the TrainingDataGenerator
+
+Image collection 
+- [] Collect images for data set
+- [] Label images with labelImg
