@@ -1,7 +1,7 @@
 # ignoring other folders
 DJITelloPy/
 env/
-Data/
+TrainingData/
 labelImg/
 
 # ignore log files

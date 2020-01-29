@@ -20,21 +20,23 @@ class TrainingDataGenerator():
     resized_height = 240
 
     # defining sub block sizes (square)
-    block_dim = 15
-    min_block_covered_area = 0.5 * block_dim**2
+    block_dim = 20
+    min_fill_area = 0.70 * block_dim**2
 
 
-    def __init__(self, scr_folder, target_folder):
+    def __init__(self, scr_folder, target_folder, debug=False):
 
         ''' 
         Inputs
         ------
         src_folder (str) : folder containing the labelled data files and the original images
         target_folder (str) : folder in which to create training images
+        debug (boolean) : True = display the training cutouts made from the manual segmentation
         '''
 
         self.src_folder = scr_folder
         self.target_folder = target_folder
+        self.debug = debug
 
         # setting up logging
         logger = logging.getLogger()
@@ -53,7 +55,7 @@ class TrainingDataGenerator():
         ''' Loads classes from the predefined classes file'''
 
         try:
-            with open(os.path.join(self.src_folder, self.predefined_classes_file)) as class_file_h:
+            with open(os.path.join(self.src_folder, self.predefined_classes_file), "r") as class_file_h:
                 self.classes = class_file_h.readlines()
         except Exception as e:
             logging.error("TrainingDataGenerator failed to load the predefined classes  : {}".format(e))
@@ -83,15 +85,17 @@ class TrainingDataGenerator():
                     image_file_path = file_root.find('./path').text
                     image = cv.imread(image_file_path, cv.IMREAD_COLOR)
                     image = cv.resize(image, (self.resized_width, self.resized_height), 
-                                         interpolation = cv.INTER_AREA)
+                                      interpolation = cv.INTER_AREA)
+
+                    block_index = 0
 
                     # going through the labelled objects
                     for labeled_object in file_root.findall('./object'):
 
-                        # extracting the label
+                        # extracting the object label
                         object_label = labeled_object.find('./name').text
 
-                        # extracting positional information
+                        # extracting object positional information
                         xmin = int(int(labeled_object.find('./bndbox/xmin').text) * width_ratio)
                         ymin = int(int(labeled_object.find('./bndbox/ymin').text) * height_ratio)
                         xmax = int(int(labeled_object.find('./bndbox/xmax').text) * width_ratio)
@@ -109,16 +113,49 @@ class TrainingDataGenerator():
                         for row_i  in range(n_vertical_blocks):
                             for col_i in range(n_horizontal_blocks):
 
-                                # only processing blocks which contain enough "object matter"
-                                 
+                                fill_width = 0
+                                fill_height = 0
+                                
+                                # calculating the horizontal fill
+                                if xmin > current_col and xmin < (current_col + self.block_dim): 
+                                    fill_width = (current_col + self.block_dim) - xmin
+                                elif xmax > current_col and xmax < (current_col + self.block_dim):
+                                    fill_width = xmax - current_col
+                                else :
+                                    fill_width = self.block_dim
 
-                                # adding rectangle overlay on current block (testing)
-                                start_point = (current_col, current_row)
-                                end_point = (current_col + self.block_dim, current_row + self.block_dim)
-                                image = cv.rectangle(image, start_point, end_point, (255, 0, 0), 2)                                
+                                # calculating the vertical fill
+                                if ymin > current_row and ymin < (current_row + self.block_dim):
+                                    fill_height = (current_row + self.block_dim) - ymin
+                                elif ymax > current_row and ymax < (current_row + self.block_dim):
+                                    fill_height = ymax - current_row
+                                else :
+                                    fill_height = self.block_dim
 
-                                cv.imshow('image', image)  
-                                cv.waitKey(0)
+                                # only processing blocks which contain enough fill area
+                                if (fill_width * fill_height) > self.min_fill_area:                                
+
+                                    if self.debug :
+                                        
+                                        # adding rectangle overlay on current block (for visualization)
+                                        start_point = (current_col, current_row)
+                                        end_point = (current_col + self.block_dim, current_row + self.block_dim)
+                                        image = cv.rectangle(image, start_point, end_point, (255, 0, 0), 1)                                
+
+                                        # displaying and wainting for user input
+                                        cv.imshow('image', image)  
+                                        cv.waitKey(0)
+
+                                    else:
+
+                                        # creating/saving a sub-image from the current block
+                                        roi = image[current_row : current_row + self.block_dim, current_col : current_col + self.block_dim]
+                                        image_file_segs = image_file_path.split("/")[-1].split(".")
+                                        block_file_name = image_file_segs[0] + "_" + str(block_index) + "_" + object_label + "." + image_file_segs[-1]
+                                        block_save_path = os.path.join(self.target_folder, block_file_name)
+                                        cv.imwrite(block_save_path, roi)
+
+                                        block_index += 1
 
                                 # moving to the next horizontal block
                                 current_col += self.block_dim
@@ -126,8 +163,10 @@ class TrainingDataGenerator():
                             # moving down a row of blocks
                             current_col = min_col_pos
                             current_row += self.block_dim
-
-                        cv.destroyAllWindows()
+                        
+                        # destroying debug windows
+                        if self.debug : 
+                            cv.destroyAllWindows()
 
                 except Exception as e:
                     logging.error("TrainingDataGenerator failed while extracting data from label file : {0}, error : {1}\
