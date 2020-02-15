@@ -19,24 +19,24 @@ class TrainingDataGenerator():
     resized_width = 320
     resized_height = 240
 
-    # defining sub block sizes (square)
-    block_dim = 20
-    min_fill_area = 0.70 * block_dim**2
-
-
-    def __init__(self, scr_folder, target_folder, debug=False):
+    def __init__(self, scr_folder, target_folder, block_dim=20, debug=False):
 
         ''' 
         Inputs
         ------
         src_folder (str) : folder containing the labelled data files and the original images
         target_folder (str) : folder in which to create training images
+        block_dim (int) : size (in pixels) of the training images (square images) 
         debug (boolean) : True = display the training cutouts made from the manual segmentation
         '''
 
         self.src_folder = scr_folder
         self.target_folder = target_folder
         self.debug = debug
+
+        # defining sub block sizes (square)
+        self.block_dim = block_dim
+        self.min_fill_area = 0.70 * self.block_dim**2
 
         # setting up logging
         logger = logging.getLogger()
@@ -172,3 +172,18 @@ class TrainingDataGenerator():
                     logging.error("TrainingDataGenerator failed while extracting data from label file : {0}, error : {1}\
                                   ".format(annotation_file, e))
                     raise
+
+
+class TrainingDataLoader():
+
+    ''' Enables the loading of labeled training data from the an image dataset '''
+
+    def __init__(self, dataset_folder):
+
+        self.dataset_folder = dataset_folder
+
+    
+    def load_training_data(self):
+        pass     
+
+

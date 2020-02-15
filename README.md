@@ -1,4 +1,2 @@
-# DJI choreographies
-Some sweet sweet choreographies for the DJI.
-<br>
-![](Docs/DJITELLO_.jpg)
+# DJI tree detection
+1 tree hahaha, 2 trees hahaha 3 tres hahaha.
