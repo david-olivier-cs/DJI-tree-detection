@@ -1,0 +1,7 @@
+{
+    "imput_img_size" : 20,
+    "feature_extractor__color_space" : "HSV",
+    "feature_extractor__lbp_n_points" : 8,
+    "feature_extractor__lbp_radius" : 1,
+    "feature_extractor__fusion_method" : 1
+}

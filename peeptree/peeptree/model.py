@@ -3,8 +3,10 @@ import cv2 as cv
 import numpy as np
 
 from skimage import feature
+from sklearn.decomposition import PCA
+from sklearn.pipeline import Pipeline
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.base import BaseEstimator, TransformerMixin
-
 
 class Classifier():
 
@@ -42,15 +44,21 @@ class TreeClassifier(Classifier):
     ''' 
     Enables tree trunk classificatino as implemented in the 
     "Visual Tree Detection for Autonomous Navigation in Forest Environment" paper. 
-    '''
-
-    def __init__(self, classifier_path):
-
-        super().__init__(classifier_path)
-
+    ''' 
 
     def predict(self, X):
-        pass
+        return self.clf.predict()
+
+    @staticmethod
+    def classification_pipeline():
+
+        ''' Returns an untrained classification pipeline'''
+
+        return Pipeline([
+            ("feature_extractor", ImageFeatureExtractor()),
+            ("pca", PCA()),
+            ("knn", KNeighborsClassifier())
+        ])
 
 
 class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
@@ -65,7 +73,6 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
     
     eps=1e-7
     color_spaces = ["RGB", "HSV"]
-    hyperparameter_names = ["color_space", "lbp_n_points", "lbp_radius", "fusion_method"]
     
     # defining channel histogram dimensions
     channel_hist_n_bins = 15
@@ -118,16 +125,16 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
         color_vector_1 = self.compute_channel_histogram(img_channel_1)
         color_vector_2 = self.compute_channel_histogram(img_channel_2)
         color_vector_3 = self.compute_channel_histogram(img_channel_3)
-        feature_vector = np.concatenate(color_vector_1, color_vector_2, color_vector_3)
+        feature_vector = np.concatenate([color_vector_1, color_vector_2, color_vector_3])
 
         # extracting LBP features from gray scale image
         if self.fusion_method == 1:
 
             if self.color_space == "RGB":
-                feature_vector = np.concatenate(feature_vector, 
-                                 self.compute_lbp_descriptor(cv2.cvtColor(X, cv2.COLOR_BGR2GRAY)))
+                feature_vector = np.concatenate([feature_vector, 
+                                 self.compute_lbp_descriptor(cv.cvtColor(X, cv.COLOR_BGR2GRAY))])
             else: 
-                feature_vector = np.concatenate(feature_vector, self.compute_lbp_descriptor(img_channel_3))
+                feature_vector = np.concatenate([feature_vector, self.compute_lbp_descriptor(img_channel_3)])
 
         # extracting LBP features from all color channels
         else:
@@ -135,7 +142,7 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
             lbp_vector_1 = self.compute_lbp_descriptor(img_channel_1)
             lbp_vector_2 = self.compute_lbp_descriptor(img_channel_2)
             lbp_vector_3 = self.compute_lbp_descriptor(img_channel_3)
-            feature_vector = np.concatenate(feature_vector, lbp_vector_1, lbp_vector_2, lbp_vector_3)
+            feature_vector = np.concatenate([feature_vector, lbp_vector_1, lbp_vector_2, lbp_vector_3])
 
         return feature_vector
 
@@ -145,15 +152,14 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
         ''' Computes the LBP decriptor for the provided gray scale image '''
 
         # computing the LBP histogram
-        lbp = feature.local_binary_pattern(gray_img, self.lbp_n_points, 
-                                           self.lbp_radius, method="uniform")
-		(hist, _) = np.histogram(lbp.ravel(), bins=np.arange(0, self.lbp_n_points + 3),
-                                 range=(0, self.numPoints + 2))
+        lbp = feature.local_binary_pattern(gray_img, self.lbp_n_points, self.lbp_radius, method="uniform")
+        (hist, _) = np.histogram(lbp.ravel(), bins=np.arange(0, self.lbp_n_points + 3), 
+                                 range=(0, self.lbp_n_points + 2))
 
         # normalizing the histogram
         hist = hist.astype("float")
-		hist /= (hist.sum() + self.eps)
-
+        hist /= (hist.sum() + self.eps)
+        
         return hist
 
 
@@ -163,5 +169,5 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
 
         (hist, _) = np.histogram(channel_img.ravel(), bins=self.channel_hist_n_bins)
         hist = hist.astype("float")
-		hist /= (hist.sum() + self.eps)
+        hist /= (hist.sum() + self.eps)
         return hist
