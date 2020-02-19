@@ -46,18 +46,32 @@ class TreeClassifier(Classifier):
     "Visual Tree Detection for Autonomous Navigation in Forest Environment" paper. 
     ''' 
 
+    pipeline_steps = ["feature_extractor", "pca", "knn"]
+
     def predict(self, X):
         return self.clf.predict()
 
-    @staticmethod
-    def classification_pipeline():
+    @classmethod
+    def classification_pipeline(cls, **kwargs):
 
         ''' Returns an untrained classification pipeline'''
 
+        # preparing configuration containers
+        configs_container = []
+        for _ in range(len(cls.pipeline_steps)):
+            configs_container.append({})
+        
+        # seperating pipeline step parameters
+        for step_i, pipeline_step in enumerate(cls.pipeline_steps):
+            for config_param in kwargs.keys():
+                if pipeline_step in config_param:
+                    clean_param_name = config_param.split("__")[-1]
+                    configs_container[step_i][clean_param_name] = kwargs[config_param]
+
         return Pipeline([
-            ("feature_extractor", ImageFeatureExtractor()),
-            ("pca", PCA()),
-            ("knn", KNeighborsClassifier())
+            ("feature_extractor", ImageFeatureExtractor(**configs_container[0])),
+            ("pca", PCA(**configs_container[1])),
+            ("knn", KNeighborsClassifier(**configs_container[2]))
         ])
 
 
@@ -100,7 +114,7 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
         self.fusion_method = fusion_method
 
         
-    def fit(self, X, y=None):
+    def fit(self, X, y=None, **kwargs):
         return self
 
     
@@ -116,35 +130,45 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
         (np.ndarray) : feature vector
         '''
 
-        # isolating image color channels
-        img_channel_1 = X[..., 0]
-        img_channel_2 = X[..., 1]
-        img_channel_3 = X[..., 2]
+        # defining the output container
+        feature_container = None
 
-        # extracting color channel histogram features (color features)
-        color_vector_1 = self.compute_channel_histogram(img_channel_1)
-        color_vector_2 = self.compute_channel_histogram(img_channel_2)
-        color_vector_3 = self.compute_channel_histogram(img_channel_3)
-        feature_vector = np.concatenate([color_vector_1, color_vector_2, color_vector_3])
+        # going through the input feature list
+        for data_i, x in enumerate(X):
 
-        # extracting LBP features from gray scale image
-        if self.fusion_method == 1:
+            # isolating image color channels
+            img_channel_1 = x[..., 0]
+            img_channel_2 = x[..., 1]
+            img_channel_3 = x[..., 2]
 
-            if self.color_space == "RGB":
-                feature_vector = np.concatenate([feature_vector, 
-                                 self.compute_lbp_descriptor(cv.cvtColor(X, cv.COLOR_BGR2GRAY))])
-            else: 
-                feature_vector = np.concatenate([feature_vector, self.compute_lbp_descriptor(img_channel_3)])
+            # extracting color channel histogram features (color features)
+            color_vector_1 = self.compute_channel_histogram(img_channel_1)
+            color_vector_2 = self.compute_channel_histogram(img_channel_2)
+            color_vector_3 = self.compute_channel_histogram(img_channel_3)
+            feature_vector = np.concatenate([color_vector_1, color_vector_2, color_vector_3])
 
-        # extracting LBP features from all color channels
-        else:
+            # extracting LBP features from gray scale image
+            if self.fusion_method == 1:
 
-            lbp_vector_1 = self.compute_lbp_descriptor(img_channel_1)
-            lbp_vector_2 = self.compute_lbp_descriptor(img_channel_2)
-            lbp_vector_3 = self.compute_lbp_descriptor(img_channel_3)
-            feature_vector = np.concatenate([feature_vector, lbp_vector_1, lbp_vector_2, lbp_vector_3])
+                if self.color_space == "RGB":
+                    feature_vector = np.concatenate([feature_vector, 
+                                    self.compute_lbp_descriptor(cv.cvtColor(x, cv.COLOR_BGR2GRAY))])
+                else: 
+                    feature_vector = np.concatenate([feature_vector, self.compute_lbp_descriptor(img_channel_3)])
 
-        return feature_vector
+            # extracting LBP features from all color channels
+            else:
+                lbp_vector_1 = self.compute_lbp_descriptor(img_channel_1)
+                lbp_vector_2 = self.compute_lbp_descriptor(img_channel_2)
+                lbp_vector_3 = self.compute_lbp_descriptor(img_channel_3)
+                feature_vector = np.concatenate([feature_vector, lbp_vector_1, lbp_vector_2, lbp_vector_3])
+
+            # adding the feature vector to the ouput container
+            if feature_container is None:
+                feature_container = feature_vector
+            else: feature_container = np.vstack((feature_container, feature_vector))
+
+        return feature_container
 
 
     def compute_lbp_descriptor(self, gray_img):

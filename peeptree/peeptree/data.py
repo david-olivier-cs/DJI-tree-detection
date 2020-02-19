@@ -6,6 +6,7 @@ import logging.handlers
 import xml.etree.ElementTree as ET
 
 import math
+import random
 import cv2 as cv
 
 class TrainingDataGenerator():
@@ -229,4 +230,8 @@ class TrainingDataLoader():
                 feature_container.append(image_mat)
                 label_container.append(image_label)
                 
-        return feature_container, label_container
+        # shuffling the training data
+        zipped_data = list(zip(feature_container, label_container))
+        random.shuffle(zipped_data)
+
+        return zip(*zipped_data)

@@ -12,6 +12,11 @@ Image collection
 - [x] Label images with labelImg
 
 Image processing
-- [] Implement training data loader
-- [] Implement image processing pipeline
-- [] Implement TreeClassifier
+- [x] Implement training data loader
+- [x] Implement image processing pipeline
+- [x] Implement TreeClassifier
+
+Model development
+- [] Implement grid search
+- [] Implement confusion matrix
+- [] Implement result visualization
