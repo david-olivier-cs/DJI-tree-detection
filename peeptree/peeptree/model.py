@@ -48,8 +48,6 @@ class TreeClassifier(Classifier):
 
     pipeline_steps = ["feature_extractor", "pca", "knn"]
 
-    def predict(self, X):
-        return self.clf.predict()
 
     @classmethod
     def classification_pipeline(cls, **kwargs):
@@ -123,11 +121,11 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
         '''
         Parameters
         ------
-        X (numpy.ndarray) : Image in 3D color space (RBG or HSV)
+        X (numpy.ndarray (4D)) : array of images in 3D color space (RBG or HSV)
         
         Returns
         -------
-        (np.ndarray) : feature vector
+        (np.ndarray (2D)) : list of feature vectors
         '''
 
         # defining the output container
@@ -167,6 +165,10 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
             if feature_container is None:
                 feature_container = feature_vector
             else: feature_container = np.vstack((feature_container, feature_vector))
+
+        # when a single feature vector is generated
+        if feature_container.ndim == 1:
+            feature_container = np.expand_dims(feature_container, axis=0)
 
         return feature_container
 

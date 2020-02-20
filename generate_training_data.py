@@ -26,7 +26,7 @@ if __name__ == "__main__":
             shutil.rmtree(target_folder)
         os.mkdir(target_folder)
 
-        print("Generating training images with dimensions : {0}X{1}.".format(str(image_size)))
+        print("Generating training images with dimensions : {0} X {0}.".format(str(image_size)))
 
         # generating training data for current format
         data_generator = TrainingDataGenerator(src_folder, target_folder, block_dim=image_size)

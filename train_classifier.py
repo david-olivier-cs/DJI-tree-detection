@@ -4,19 +4,22 @@ Entry point script for training the tree classifier using the generated training
 
 import os
 import json
+import pickle
 import os.path
-import pandas as pd
 
 from peeptree.data import TrainingDataLoader
 from peeptree.model import TreeClassifier
 
+import numpy as np
+import pandas as pd
 from sklearn.model_selection import cross_validate
 from sklearn.metrics import accuracy_score, recall_score
 
 
 if __name__ == "__main__":
 
-    # defining training data paths
+    # defining necessary paths
+    output_model_path = "classifier.pickle"
     training_folder_prefix = "/home/one_wizard_boi/Documents/Projects/DJI-tree-detection/TrainingData/LabeledData_"
     class_definitions_path = "/home/one_wizard_boi/Documents/Projects/DJI-tree-detection/predefined_classes.txt"
 
@@ -35,11 +38,15 @@ if __name__ == "__main__":
     # loading training data
     X, y = data_loader.load_training_data()
     training_df = pd.DataFrame({'label': y})
-    print("\nFeature set shape : ", X[0].shape, "\n")
+    print("\nFeature set shape : ", X.shape, "\n")
     print("Label distribution :\n", training_df["label"].value_counts(), "\n")
 
-    # cross validation training
+    # checking model performance with cross validation
     scoring = {'accuracy': 'accuracy', 'recall': 'recall', 'precision': 'precision'}
     cross_val_scores = cross_validate(clf_pipeline, X, y, cv=3, scoring=scoring)
-
     print("cross validation scores : \n\n", cross_val_scores)
+
+    # training and exporting the model
+    clf_pipeline.fit(X,y)
+    with open(output_model_path, 'wb') as handle:
+        pickle.dump(clf_pipeline, handle)

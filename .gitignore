@@ -4,8 +4,9 @@ env/
 TrainingData/
 labelImg/
 
-# ignore log files
+# extra file types to ignore
 *.log
+*.pickle
 
 # ignoring vs code files
 .vscode/

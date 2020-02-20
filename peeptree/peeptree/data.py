@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 import math
 import random
 import cv2 as cv
+import numpy as np
 
 class TrainingDataGenerator():
 
@@ -102,7 +103,7 @@ class TrainingDataGenerator():
                         xmax = int(int(labeled_object.find('./bndbox/xmax').text) * width_ratio)
                         ymax = int(int(labeled_object.find('./bndbox/ymax').text) * height_ratio)
 
-                        # calculating the possible horizontal indicies
+                        # calculating the object dimensions in terms of blocks
                         min_row_pos = (ymin // self.block_dim) * self.block_dim
                         n_vertical_blocks = ((math.ceil(ymax / self.block_dim) * self.block_dim) - min_row_pos) // self.block_dim
                         min_col_pos = (xmin // self.block_dim) * self.block_dim
@@ -111,8 +112,8 @@ class TrainingDataGenerator():
                         # going through the block touching the object
                         current_row = min_row_pos 
                         current_col = min_col_pos
-                        for row_i  in range(n_vertical_blocks):
-                            for col_i in range(n_horizontal_blocks):
+                        for _  in range(n_vertical_blocks):
+                            for _ in range(n_horizontal_blocks):
 
                                 fill_width = 0
                                 fill_height = 0
@@ -151,12 +152,16 @@ class TrainingDataGenerator():
 
                                         # creating/saving a sub-image from the current block
                                         roi = image[current_row : current_row + self.block_dim, current_col : current_col + self.block_dim]
-                                        image_file_segs = image_file_path.split("/")[-1].split(".")
-                                        block_file_name = image_file_segs[0] + "_" + str(block_index) + "_" + object_label + "." + image_file_segs[-1]
-                                        block_save_path = os.path.join(self.target_folder, block_file_name)
-                                        cv.imwrite(block_save_path, roi)
+                                        
+                                        # making sure the subimage is not truncated (happens when sub image is partially out on bounds)
+                                        if roi.shape[0] == self.block_dim and roi.shape[1] == self.block_dim:  
 
-                                        block_index += 1
+                                            image_file_segs = image_file_path.split("/")[-1].split(".")
+                                            block_file_name = image_file_segs[0] + "_" + str(block_index) + "_" + object_label + "." + image_file_segs[-1]
+                                            block_save_path = os.path.join(self.target_folder, block_file_name)
+                                            cv.imwrite(block_save_path, roi)
+
+                                            block_index += 1
 
                                 # moving to the next horizontal block
                                 current_col += self.block_dim
@@ -233,5 +238,11 @@ class TrainingDataLoader():
         # shuffling the training data
         zipped_data = list(zip(feature_container, label_container))
         random.shuffle(zipped_data)
+        feature_container, label_container = zip(*zipped_data)
 
-        return zip(*zipped_data)
+        # converting the containers to numpy arrays
+        label_container = np.array(list(label_container))
+        feature_container = list(feature_container)
+        feature_container = np.concatenate([mat[np.newaxis] for mat in feature_container])
+
+        return feature_container, label_container
