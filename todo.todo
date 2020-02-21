@@ -17,6 +17,6 @@ Image processing
 - [x] Implement TreeClassifier
 
 Model development
-- [] Implement grid search
-- [] Implement confusion matrix
-- [] Implement result visualization
+- [x] Implement grid search
+- [x] Implement result visualization
+- [] Produce better quality training data

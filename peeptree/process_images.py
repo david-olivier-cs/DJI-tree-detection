@@ -16,7 +16,7 @@ if __name__ == "__main__":
     image_dir = "/home/one_wizard_boi/Documents/Projects/DJI-tree-detection/TrainingData/OriginalImages"
 
     # defining the image processor
-    processor = ImageProcessor(trained_clf_path, block_size=25, debug=True)
+    processor = ImageProcessor(trained_clf_path, block_size=15, debug=True)
 
     # going through the test images
     for element in os.listdir(image_dir):

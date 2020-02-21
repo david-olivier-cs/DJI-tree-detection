@@ -1,6 +1,4 @@
-'''
-Entry point script for training the tree classifier using the generated training data
-'''
+''' Entry point script for training the tree classifier using the generated training data '''
 
 import os
 import json
@@ -20,11 +18,11 @@ if __name__ == "__main__":
 
     # defining necessary paths
     output_model_path = "classifier.pickle"
+    pipeline_config_path = "pipeline_params.json"
+    class_definitions_path = "predefined_classes.txt"
     training_folder_prefix = "/home/one_wizard_boi/Documents/Projects/DJI-tree-detection/TrainingData/LabeledData_"
-    class_definitions_path = "/home/one_wizard_boi/Documents/Projects/DJI-tree-detection/predefined_classes.txt"
 
     # loading the wanted pipeline parameters
-    pipeline_config_path = "/home/one_wizard_boi/Documents/Projects/DJI-tree-detection/pipeline_params.json"
     with open(pipeline_config_path) as config_file_h:
         clf_params = json.load(config_file_h)
 
