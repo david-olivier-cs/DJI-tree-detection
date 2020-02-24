@@ -3,7 +3,7 @@
 import json
 import pickle
 
-from peeptree.model import TreeClassifier
+from peeptree.model import TreeClassifierKNN, TreeClassifierSVM
 from peeptree.data import TrainingDataLoader
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, recall_score
@@ -34,8 +34,8 @@ if __name__ == "__main__":
         X, y = data_loader.load_training_data()
 
         # defining the grid search
-        clf_pipeline = TreeClassifier.classification_pipeline()
-        g_search = GridSearchCV(estimator=clf_pipeline, param_grid=param_grid, 
+        clf_pipeline = TreeClassifierSVM.classification_pipeline()
+        g_search = GridSearchCV(estimator=clf_pipeline, param_grid=param_grid["svm"], 
                                 scoring="recall", n_jobs=3, cv=3, verbose=10)
         
         # performing the grid search and exporting the results

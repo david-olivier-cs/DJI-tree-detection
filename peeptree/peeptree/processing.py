@@ -3,7 +3,7 @@ import os.path
 
 import cv2 as cv
 import numpy as np
-from .model import TreeClassifier
+from .model import TreeClassifierKNN, TreeClassifierSVM
 
 
 class DetectedObject():
@@ -15,8 +15,8 @@ class DetectedObject():
         '''
         Parameters
         ----------
-        top_left (int, int) : top left bounding box coordinates
-        bottom_right (int, int) : bottom right bounding box coordinates
+        top_left (int, int) : top left bounding box coordinates (row, col)
+        bottom_right (int, int) : bottom right bounding box coordinates (row, col)
         '''
 
         self.top_left = top_left
@@ -50,36 +50,36 @@ class ImageProcessor():
 
 
         # defining classifier for object recognition
-        self.clf = TreeClassifier(clf_path)
+        self.clf = TreeClassifierSVM(clf_path)
 
 
-    def process_frame(self, image):
+    def detect_object_segments(self, image):
 
         '''
+        Returns image segments classified as object segments
+
         Parameters
         ------
         image (numpy.ndarray) : Image in 3D color space (RBG or HSV)
         
         Returns
         -------
-        list(DetectedObject) : list of detected objects
+        list(list(DetectedObject)) : 2D list of detected objects
         '''
 
         # resizing the input image
         image = cv.resize(image, (self.resized_width, self.resized_height), 
                           interpolation = cv.INTER_AREA)
 
-        object_segments = []
-
+        object_segments = [[None] * self.n_blocks_col for i in range(self.n_blocks_row)]
+        
         # going through the blocks of the input image
         for row_i in range(self.n_blocks_row):
-            
             seg_row_start = row_i * self.block_size
-
             for col_i in range(self.n_blocks_col):
 
                 # extracting current subimage
-                seg_col_start = col_i * self.block_size     
+                seg_col_start = col_i * self.block_size
                 image_seg = image[seg_row_start : seg_row_start + self.block_size, seg_col_start : seg_col_start + self.block_size]
                 image_seg = np.expand_dims(image_seg, axis=0)
 
@@ -87,18 +87,60 @@ class ImageProcessor():
                 if self.clf.predict(image_seg) == self.detected_segment_label:
                     seg_top_left = (seg_col_start, seg_row_start)
                     seg_bottom_right = (seg_col_start + self.block_size, seg_row_start + self.block_size)
-                    object_segments.append(DetectedObject(seg_top_left, seg_bottom_right))
+                    object_segments[row_i][col_i] = DetectedObject(seg_top_left, seg_bottom_right)
+
+        # filtering the detected segments 
+        object_segments = self.filter_segments(object_segments)
 
         # debug mode displays detected object segments
         if self.debug:
-            for obj_seg in object_segments:
-                image = cv.rectangle(image, obj_seg.top_left, obj_seg.bottom_right, (255, 0, 0), 1)                                
-            cv.imshow("Detected segments", image)  
-            cv.waitKey(0)
+            self.display_segments(image, object_segments)            
+
+        return object_segments
 
 
+    def filter_segments(self, segments):
+
+        ''' 
+        Removes detected segments based on logical rules
+        
+        Parameters
+        ----------
+        segments (list(DetectedObject)) : image segments to be filtered
+        
+        Returns
+        -------
+        (list(DetectedObject)) : filtered segments
+        '''
+
+        # removing segments which are alone on a column
+
+        for col_i in range(self.n_blocks_col):        
+            
+            first_seg_row = None
+            col_seg_count = 0
+            
+            for row_i in range(self.n_blocks_row):
+                
+                if not segments[row_i][col_i] == None:    
+                    col_seg_count += 1
+                    if first_seg_row == None:
+                        first_seg_row = row_i
+                    
+            if col_seg_count == 1:
+                segments[first_seg_row][col_i] = None
+
+        return segments
 
 
+    def display_segments(self, image, segments):
 
+        ''' Display detected segments on source image '''
 
-
+        for row_i in range(self.n_blocks_row):
+            for col_i in range(self.n_blocks_col):
+                if segments[row_i][col_i] is not None:
+                    image = cv.rectangle(image, segments[row_i][col_i].top_left, segments[row_i][col_i].bottom_right, (255, 0, 0), 1)                                
+                  
+        cv.imshow("Detected segments", image)  
+        cv.waitKey(0)

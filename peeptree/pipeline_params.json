@@ -1,9 +1,13 @@
 {
-    "input_img_size" : 15,
-    "feature_extractor__color_space" : "HSV",
+    "input_img_size" : 20,
+    "feature_extractor__color_space" : "RGB",
     "feature_extractor__lbp_n_points" : 8,
-    "feature_extractor__lbp_radius" : 1,
+    "feature_extractor__lbp_radius" : 5,
     "feature_extractor__fusion_method" : 2,
     "pca__n_components" : 0.99,
-    "knn__n_neighbors" : 3
+    "knn__n_neighbors" : 3,
+    "svm__kernel" : "poly",
+    "svm__gamma" : "scale",
+    "svm__C" : 100,
+    "svm__degree" : 3
 }

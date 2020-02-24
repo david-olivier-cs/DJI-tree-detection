@@ -6,7 +6,7 @@ import pickle
 import os.path
 
 from peeptree.data import TrainingDataLoader
-from peeptree.model import TreeClassifier
+from peeptree.model import TreeClassifierKNN, TreeClassifierSVM
 
 import numpy as np
 import pandas as pd
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     data_loader = TrainingDataLoader(training_folder_path, class_definitions_path)
 
     # defining the untrained classification pipeline
-    clf_pipeline = TreeClassifier.classification_pipeline(**clf_params)
+    clf_pipeline = TreeClassifierSVM.classification_pipeline(**clf_params)
 
     # loading training data
     X, y = data_loader.load_training_data()

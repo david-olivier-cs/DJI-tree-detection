@@ -2,6 +2,7 @@ import pickle
 import cv2 as cv
 import numpy as np
 
+from sklearn import svm
 from skimage import feature
 from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
@@ -39,10 +40,10 @@ class Classifier():
         return self.clf.predict(X)[0]
 
 
-class TreeClassifier(Classifier):
+class TreeClassifierKNN(Classifier):
 
     ''' 
-    Enables tree trunk classificatino as implemented in the 
+    Enables tree trunk classification as implemented in the 
     "Visual Tree Detection for Autonomous Navigation in Forest Environment" paper. 
     ''' 
 
@@ -70,6 +71,37 @@ class TreeClassifier(Classifier):
             ("feature_extractor", ImageFeatureExtractor(**configs_container[0])),
             ("pca", PCA(**configs_container[1])),
             ("knn", KNeighborsClassifier(**configs_container[2]))
+        ])
+
+
+class TreeClassifierSVM(Classifier):
+
+    ''' Enables tree trunk classification with a SVM ''' 
+
+    pipeline_steps = ["feature_extractor", "pca", "svm"]
+
+
+    @classmethod
+    def classification_pipeline(cls, **kwargs):
+
+        ''' Returns an untrained classification pipeline'''
+
+        # preparing configuration containers
+        configs_container = []
+        for _ in range(len(cls.pipeline_steps)):
+            configs_container.append({})
+        
+        # seperating pipeline step parameters
+        for step_i, pipeline_step in enumerate(cls.pipeline_steps):
+            for config_param in kwargs.keys():
+                if pipeline_step in config_param:
+                    clean_param_name = config_param.split("__")[-1]
+                    configs_container[step_i][clean_param_name] = kwargs[config_param]
+
+        return Pipeline([
+            ("feature_extractor", ImageFeatureExtractor(**configs_container[0])),
+            ("pca", PCA(**configs_container[1])),
+            ("svm", svm.SVC(**configs_container[2]))
         ])
 
 

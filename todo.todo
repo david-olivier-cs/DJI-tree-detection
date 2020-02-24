@@ -19,4 +19,6 @@ Image processing
 Model development
 - [x] Implement grid search
 - [x] Implement result visualization
+- [x] Implement SVM classification pipeline
+- [] Implement post classification processing
 - [] Produce better quality training data
