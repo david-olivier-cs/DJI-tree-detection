@@ -4,7 +4,6 @@
     "feature_extractor__lbp_n_points" : 8,
     "feature_extractor__lbp_radius" : 5,
     "feature_extractor__fusion_method" : 2,
-    "pca__n_components" : 0.99,
     "knn__n_neighbors" : 3,
     "svm__kernel" : "poly",
     "svm__gamma" : "scale",

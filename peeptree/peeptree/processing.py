@@ -115,7 +115,7 @@ class ImageProcessor():
 
         # removing segments which are alone on a column
 
-        for col_i in range(self.n_blocks_col):        
+        for col_i in range(self.n_blocks_col):
             
             first_seg_row = None
             col_seg_count = 0

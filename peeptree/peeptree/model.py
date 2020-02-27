@@ -4,7 +4,6 @@ import numpy as np
 
 from sklearn import svm
 from skimage import feature
-from sklearn.decomposition import PCA
 from sklearn.pipeline import Pipeline
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -47,7 +46,7 @@ class TreeClassifierKNN(Classifier):
     "Visual Tree Detection for Autonomous Navigation in Forest Environment" paper. 
     ''' 
 
-    pipeline_steps = ["feature_extractor", "pca", "knn"]
+    pipeline_steps = ["feature_extractor", "knn"]
 
 
     @classmethod
@@ -68,17 +67,16 @@ class TreeClassifierKNN(Classifier):
                     configs_container[step_i][clean_param_name] = kwargs[config_param]
 
         return Pipeline([
-            ("feature_extractor", ImageFeatureExtractor(**configs_container[0])),
-            ("pca", PCA(**configs_container[1])),
-            ("knn", KNeighborsClassifier(**configs_container[2]))
+            ("feature_extractor", ImageFeatureExtractor(**configs_container[0]))
+            ("knn", KNeighborsClassifier(**configs_container[1]))
         ])
-
+        
 
 class TreeClassifierSVM(Classifier):
 
     ''' Enables tree trunk classification with a SVM ''' 
 
-    pipeline_steps = ["feature_extractor", "pca", "svm"]
+    pipeline_steps = ["feature_extractor", "svm"]
 
 
     @classmethod
@@ -97,11 +95,10 @@ class TreeClassifierSVM(Classifier):
                 if pipeline_step in config_param:
                     clean_param_name = config_param.split("__")[-1]
                     configs_container[step_i][clean_param_name] = kwargs[config_param]
-
+        
         return Pipeline([
             ("feature_extractor", ImageFeatureExtractor(**configs_container[0])),
-            ("pca", PCA(**configs_container[1])),
-            ("svm", svm.SVC(**configs_container[2]))
+            ("svm", svm.SVC(**configs_container[1]))
         ])
 
 
