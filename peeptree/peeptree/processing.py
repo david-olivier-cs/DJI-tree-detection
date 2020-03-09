@@ -92,11 +92,14 @@ class ImageProcessor():
         # filtering the detected segments 
         object_segments = self.filter_segments(object_segments)
 
-        # debug mode displays detected object segments
-        if self.debug:
-            self.display_segments(image, object_segments)            
+        # adding detection overlay
+        image = self.overlay_segment_rois(image, object_segments)
 
-        return object_segments
+        if self.debug:
+            cv.imshow("Detected segments", image)  
+            cv.waitKey(0)
+
+        return image
 
 
     def filter_segments(self, segments):
@@ -133,14 +136,14 @@ class ImageProcessor():
         return segments
 
 
-    def display_segments(self, image, segments):
+    def overlay_segment_rois(self, image, segments):
 
-        ''' Display detected segments on source image '''
+        ''' Overlay detected segments ROIs on source image '''
 
         for row_i in range(self.n_blocks_row):
             for col_i in range(self.n_blocks_col):
                 if segments[row_i][col_i] is not None:
-                    image = cv.rectangle(image, segments[row_i][col_i].top_left, segments[row_i][col_i].bottom_right, (255, 0, 0), 1)                                
+                    image = cv.rectangle(image, segments[row_i][col_i].top_left, 
+                                         segments[row_i][col_i].bottom_right, (255, 0, 0), 1)                                
                   
-        cv.imshow("Detected segments", image)  
-        cv.waitKey(0)
+        return image
