@@ -6,7 +6,7 @@ import os
 import os.path
 
 import cv2 as cv
-from peeptree.processing import ImageProcessor, DetectedObject
+from peeptree.processing import ImageProcessor
 
 if __name__ == "__main__":
 

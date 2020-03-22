@@ -48,7 +48,6 @@ class ImageProcessor():
         self.n_blocks_col = self.resized_width // self.block_size
         self.n_blocks_row = self.resized_height // self.block_size
 
-
         # defining classifier for object recognition
         self.clf = TreeClassifierSVM(clf_path)
 

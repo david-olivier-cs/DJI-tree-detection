@@ -5,8 +5,10 @@ import numpy as np
 from sklearn import svm
 from skimage import feature
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import Normalizer
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.base import BaseEstimator, TransformerMixin
+
 
 class Classifier():
 
@@ -98,6 +100,7 @@ class TreeClassifierSVM(Classifier):
         
         return Pipeline([
             ("feature_extractor", ImageFeatureExtractor(**configs_container[0])),
+            ('normalizer', Normalizer()),
             ("svm", svm.SVC(**configs_container[1]))
         ])
 
@@ -113,12 +116,11 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
     '''
     
     eps=1e-7
+    color_max_value = 255
     color_spaces = ["RGB", "HSV"]
     
-    # defining channel histogram dimensions
-    channel_hist_n_bins = 15
-
-    def __init__(self, color_space="HSV", lbp_n_points=8, lbp_radius=1, fusion_method=1):
+    def __init__(self, color_space="HSV", channel_hist_n_bins=15, lbp_n_points=8, 
+                 lbp_radius=1, fusion_method=1):
         
         '''
         Parameters
@@ -136,9 +138,10 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
             raise ValueError("Invalid fusion method") 
 
         self.lbp_radius = lbp_radius
-        self.lbp_n_points = lbp_n_points
         self.color_space = color_space
-        self.fusion_method = fusion_method
+        self.lbp_n_points = lbp_n_points
+        self.fusion_method = fusion_method 
+        self.channel_hist_n_bins = channel_hist_n_bins
 
         
     def fit(self, X, y=None, **kwargs):
@@ -161,18 +164,22 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
         feature_container = None
 
         # going through the input feature list
-        for data_i, x in enumerate(X):
+        for x in X:
 
             # isolating image color channels
             img_channel_1 = x[..., 0]
             img_channel_2 = x[..., 1]
             img_channel_3 = x[..., 2]
 
-            # extracting color channel histogram features (color features)
-            color_vector_1 = self.compute_channel_histogram(img_channel_1)
-            color_vector_2 = self.compute_channel_histogram(img_channel_2)
-            color_vector_3 = self.compute_channel_histogram(img_channel_3)
-            feature_vector = np.concatenate([color_vector_1, color_vector_2, color_vector_3])
+            # extracting color channel features
+            hist_vector_1 = self.compute_channel_histogram(img_channel_1)
+            hist_vector_2 = self.compute_channel_histogram(img_channel_2)
+            hist_vector_3 = self.compute_channel_histogram(img_channel_3)
+            stats_vector_1 = self.compute_channel_stats(img_channel_1)
+            stats_vector_2 = self.compute_channel_stats(img_channel_2)
+            stats_vector_3 = self.compute_channel_stats(img_channel_3)
+            feature_vector = np.concatenate([hist_vector_1, stats_vector_1, hist_vector_2, stats_vector_2,
+                                             hist_vector_3, stats_vector_3])
 
             # extracting LBP features from gray scale image
             if self.fusion_method == 1:
@@ -189,7 +196,7 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
                 lbp_vector_2 = self.compute_lbp_descriptor(img_channel_2)
                 lbp_vector_3 = self.compute_lbp_descriptor(img_channel_3)
                 feature_vector = np.concatenate([feature_vector, lbp_vector_1, lbp_vector_2, lbp_vector_3])
-
+            
             # adding the feature vector to the ouput container
             if feature_container is None:
                 feature_container = feature_vector
@@ -226,3 +233,11 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
         hist = hist.astype("float")
         hist /= (hist.sum() + self.eps)
         return hist
+
+
+    def compute_channel_stats(self, channel_img):
+
+        ''' Computed mean ans std div for channel values '''
+
+        return [np.mean(channel_img) / self.color_max_value, 
+                np.std(channel_img) / self.color_max_value]

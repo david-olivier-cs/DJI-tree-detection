@@ -38,7 +38,7 @@ class TrainingDataGenerator():
 
         # defining sub block sizes (square)
         self.block_dim = block_dim
-        self.min_fill_area = 0.70 * self.block_dim**2
+        self.min_fill_area = 0.65 * self.block_dim**2
 
         # setting up logging
         logger = logging.getLogger()

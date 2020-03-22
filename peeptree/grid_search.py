@@ -23,7 +23,7 @@ if __name__ == "__main__":
         param_grid = json.load(grid_file_h)
 
     # performing grid searches for every input image size
-    image_sizes = [15, 20, 25, 30]
+    image_sizes = [20]
     for image_size in image_sizes:
 
         print("\n\nPerforming grid search with image size : ({0} X {0})\n\n".format(str(image_size)))
