@@ -103,7 +103,7 @@ class TreeClassifierSVM(Classifier):
             ('normalizer', Normalizer()),
             ("svm", svm.SVC(**configs_container[1]))
         ])
-
+        
 
 class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
 
@@ -119,7 +119,7 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
     color_max_value = 255
     color_spaces = ["RGB", "HSV"]
     
-    def __init__(self, color_space="HSV", channel_hist_n_bins=15, lbp_n_points=8, 
+    def __init__(self, color_space="RGB", channel_hist_n_bins=15, lbp_n_points=8, 
                  lbp_radius=1, fusion_method=1):
         
         '''
@@ -131,7 +131,7 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
         color_space (str) : input image color space (HSV, RBG)
         '''
 
-        if not color_space in self.color_spaces:
+        if not (color_space in self.color_spaces):
             raise ValueError("Invalid color space")
 
         if not (fusion_method == 1 or fusion_method == 2):
@@ -196,7 +196,7 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
                 lbp_vector_2 = self.compute_lbp_descriptor(img_channel_2)
                 lbp_vector_3 = self.compute_lbp_descriptor(img_channel_3)
                 feature_vector = np.concatenate([feature_vector, lbp_vector_1, lbp_vector_2, lbp_vector_3])
-            
+
             # adding the feature vector to the ouput container
             if feature_container is None:
                 feature_container = feature_vector
@@ -237,7 +237,7 @@ class ImageFeatureExtractor(BaseEstimator, TransformerMixin):
 
     def compute_channel_stats(self, channel_img):
 
-        ''' Computed mean ans std div for channel values '''
-
+        ''' Computes mean and std div for channel values '''
+        
         return [np.mean(channel_img) / self.color_max_value, 
                 np.std(channel_img) / self.color_max_value]

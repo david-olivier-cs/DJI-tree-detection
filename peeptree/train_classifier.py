@@ -27,8 +27,9 @@ if __name__ == "__main__":
         clf_params = json.load(config_file_h)
 
     # setting up the loading of training data
+    color_space = clf_params["feature_extractor__color_space"]
     training_folder_path = training_folder_prefix + str(clf_params["input_img_size"])
-    data_loader = TrainingDataLoader(training_folder_path, class_definitions_path)
+    data_loader = TrainingDataLoader(training_folder_path, class_definitions_path, color_space=color_space)
 
     # defining the untrained classification pipeline
     clf_pipeline = TreeClassifierSVM.classification_pipeline(**clf_params)

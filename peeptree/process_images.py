@@ -16,13 +16,19 @@ if __name__ == "__main__":
     image_dir = "/home/one_wizard_boi/Documents/Projects/DJI-tree-detection/TrainingData/OriginalImages"
 
     # defining the image processor
+    color_space = "RGB"
     processor = ImageProcessor(trained_clf_path, block_size=20, debug=True)
 
     # going through the test images
     for element in os.listdir(image_dir):
         if element.split(".")[-1] in image_extensions:
 
-            # loading and processing the target image
+            # loading the target image
             image_path = os.path.join(image_dir, element)
-            image = cv.imread(image_path, cv.IMREAD_COLOR)
+            if color_space == "RGB":
+                image = cv.imread(image_path, cv.IMREAD_COLOR)
+            else:
+                image = cv.imread(image_path, cv.COLOR_RGB2HSV)
+
+            # processing the target image
             processor.detect_object_segments(image)

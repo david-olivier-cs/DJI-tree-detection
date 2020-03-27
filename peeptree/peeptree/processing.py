@@ -129,8 +129,9 @@ class ImageProcessor():
                     if first_seg_row == None:
                         first_seg_row = row_i
                     
-            if col_seg_count == 1:
-                segments[first_seg_row][col_i] = None
+            if col_seg_count <= 2:
+                for i in range(self.n_blocks_row):
+                    segments[i][col_i] = None
 
         return segments
 

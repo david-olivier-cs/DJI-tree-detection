@@ -4,6 +4,10 @@ env/
 TrainingData/
 labelImg/
 
+# ignore image files
+*.png
+*.jpg
+
 # extra file types to ignore
 *.log
 *.pickle
