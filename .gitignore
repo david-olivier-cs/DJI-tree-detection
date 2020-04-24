@@ -4,9 +4,10 @@ env/
 TrainingData/
 labelImg/
 
-# ignore image files
+# ignore image and video files
 *.png
 *.jpg
+*.mp4
 
 # extra file types to ignore
 *.log

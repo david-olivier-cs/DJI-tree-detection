@@ -1,5 +1,5 @@
 '''
-Entry point for the testing of the Tree trunk recognition
+Entry point to apply trunk recognition algo to test images
 '''
 
 import os
