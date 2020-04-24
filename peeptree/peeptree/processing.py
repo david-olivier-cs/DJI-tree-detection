@@ -63,7 +63,7 @@ class ImageProcessor():
         
         Returns
         -------
-        list(list(DetectedObject)) : 2D list of detected objects
+        list(list(DetectedObject / None)) : 2D list of detected objects
         '''
 
         # resizing the input image
@@ -108,30 +108,42 @@ class ImageProcessor():
         
         Parameters
         ----------
-        segments (list(DetectedObject)) : image segments to be filtered
+        segments (list(list(DetectedObject / None))) : image segments to be filtered
         
         Returns
         -------
-        (list(DetectedObject)) : filtered segments
+        (list(list(DetectedObject / None))) : filtered segments
         '''
 
-        # removing segments which are alone on a column
+        # removing detected segments with no direct neighbors
 
+        # going through segment grid
         for col_i in range(self.n_blocks_col):
-            
-            first_seg_row = None
-            col_seg_count = 0
-            
             for row_i in range(self.n_blocks_row):
                 
-                if not segments[row_i][col_i] == None:    
-                    col_seg_count += 1
-                    if first_seg_row == None:
-                        first_seg_row = row_i
-                    
-            if col_seg_count <= 2:
-                for i in range(self.n_blocks_row):
-                    segments[i][col_i] = None
+                has_neighbor = False
+
+                # checking for direct neighbors
+    
+                if row_i > 0 :
+                    if segments[row_i - 1][col_i] is not None:
+                        has_neighbor = True
+
+                if row_i < (self.n_blocks_row - 1):
+                    if segments[row_i + 1][col_i] is not None:
+                        has_neighbor = True
+
+                if col_i > 0 :
+                    if segments[row_i][col_i - 1] is not None:
+                        has_neighbor = True
+            
+                if col_i < (self.n_blocks_col - 1):
+                    if segments[row_i][col_i + 1] is not None:
+                        has_neighbor = True
+
+                # removing segments with no neighbors
+                if not has_neighbor:
+                    segments[row_i][col_i] = None
 
         return segments
 
@@ -144,6 +156,6 @@ class ImageProcessor():
             for col_i in range(self.n_blocks_col):
                 if segments[row_i][col_i] is not None:
                     image = cv.rectangle(image, segments[row_i][col_i].top_left, 
-                                         segments[row_i][col_i].bottom_right, (255, 0, 0), 1)                                
+                                         segments[row_i][col_i].bottom_right, (0, 0, 255), 1)                                
                   
         return image

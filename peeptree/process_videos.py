@@ -19,7 +19,7 @@ video_folder = "/home/one_wizard_boi/Documents/Projects/DJI-tree-detection/Docs/
 
 # defining detection refresh variables
 frame_counter = 6
-detection_refresh = 2
+detection_refresh = 5
 latest_frame = None
 
 if __name__ == "__main__":
